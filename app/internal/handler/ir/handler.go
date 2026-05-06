@@ -1,0 +1,86 @@
+package ir
+
+import (
+	"app/internal/serial"
+	"encoding/json"
+	"errors"
+	"log/slog"
+)
+
+type BoundAction struct {
+	ActionId IrActionId
+	Params   json.RawMessage
+}
+
+type IrEventHandler struct {
+	ctx          *IrActionContext
+	keyActionMap map[string]BoundAction
+	actionMap    map[IrActionId]IrAction
+	logger       *slog.Logger
+}
+
+func NewIrEventHandler(ctx *IrActionContext, logger *slog.Logger) *IrEventHandler {
+	if ctx == nil {
+		panic("IrActionContext cannot be nil")
+
+	}
+
+	if ctx.Keyboard == nil || ctx.Mouse == nil {
+		panic("IrActionContext must have both Keyboard and Mouse initialized")
+	}
+
+	if logger == nil {
+		panic("Logger cannot be nil")
+	}
+
+	return &IrEventHandler{
+		ctx:          ctx,
+		keyActionMap: make(map[string]BoundAction),
+		actionMap:    make(map[IrActionId]IrAction),
+		logger:       logger,
+	}
+}
+
+func (eh *IrEventHandler) RegisterKeyAction(key IrKey, actionId IrActionId, params json.RawMessage) {
+	eh.keyActionMap[key.String()] = BoundAction{
+		ActionId: actionId,
+		Params:   params,
+	}
+	eh.logger.Debug("Key action registered", "key", key.String(), "action_id", actionId)
+}
+
+func (eh *IrEventHandler) RegisterAction(actionId IrActionId, action IrAction) {
+	eh.actionMap[actionId] = action
+	eh.logger.Debug("Action registered", "action_id", actionId)
+}
+
+func (eh *IrEventHandler) Handle(payload *serial.IrPayload) error {
+	if payload == nil {
+		return errors.New("payload is nil")
+	}
+
+	key := NewIrKey(payload)
+
+	boundAction, exists := eh.keyActionMap[key.String()]
+
+	if !exists {
+		eh.logger.Debug("No action mapped for IR key", "key", key.String())
+		return errors.New("no action mapped for this key")
+	}
+
+	action, exists := eh.actionMap[boundAction.ActionId]
+
+	if !exists {
+		eh.logger.Error("Action not found", "action_id", boundAction.ActionId)
+		return errors.New("no action found for action ID: " + string(boundAction.ActionId))
+	}
+
+	err := action(eh.ctx, boundAction.Params)
+	if err != nil {
+		eh.logger.Error("Failed to execute action", "action_id", boundAction.ActionId, "error", err)
+		return err
+	}
+
+	eh.logger.Debug("Action executed successfully", "action_id", boundAction.ActionId)
+	return nil
+}

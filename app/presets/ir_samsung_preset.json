@@ -1,0 +1,154 @@
+{
+    "address": 7,
+    "items": [
+        {
+            "command": 11,
+            "action": "volume",
+            "params": {
+                "delta": -1
+            }
+        },
+        {
+            "command": 7,
+            "action": "volume",
+            "params": {
+                "delta": 1
+            }
+        },
+        {
+            "command": 15,
+            "action": "mute",
+            "params": {}
+        },
+        {
+            "command": 104,
+            "action": "mouse_click",
+            "params": {
+                "button": 1,
+                "count": 1
+            }
+        },
+        {
+            "command": 0,
+            "action": "mouse_click",
+            "params": {
+                "button": -1,
+                "count": 1
+            }
+        },
+        {
+            "command": 96,
+            "action": "mouse_move",
+            "params": {
+                "dx": 0,
+                "dy": -15
+            }
+        },
+        {
+            "command": 97,
+            "action": "mouse_move",
+            "params": {
+                "dx": 0,
+                "dy": 15
+            }
+        },
+        {
+            "command": 101,
+            "action": "mouse_move",
+            "params": {
+                "dx": -15,
+                "dy": 0
+            }
+        },
+        {
+            "command": 98,
+            "action": "mouse_move",
+            "params": {
+                "dx": 15,
+                "dy": 0
+            }
+        },
+        {
+            "command": 18,
+            "action": "mouse_scroll",
+            "params": {
+                "direction": false,
+                "amount": 1
+            }
+        },
+        {
+            "command": 16,
+            "action": "mouse_scroll",
+            "params": {
+                "direction": false,
+                "amount": -1
+            }
+        },
+        {
+            "command": 0,
+            "action": "run_command",
+            "params": {
+                "command": "firefox",
+                "args": []
+            }
+        },
+        {
+            "command": 71,
+            "action": "play_pause",
+            "params": {}
+        },
+        {
+            "command": 72,
+            "action": "next_track",
+            "params": {}
+        },
+        {
+            "command": 69,
+            "action": "previous_track",
+            "params": {}
+        },
+        {
+            "command": 0,
+            "action": "print_screen",
+            "params": {}
+        },
+        {
+            "command": 0,
+            "action": "enter",
+            "params": {}
+        },
+        {
+            "command": 0,
+            "action": "escape",
+            "params": {}
+        },
+        {
+            "command": 0,
+            "action": "arrow",
+            "params": {
+                "direction": "up"
+            }
+        },
+        {
+            "command": 0,
+            "action": "arrow",
+            "params": {
+                "direction": "down"
+            }
+        },
+        {
+            "command": 0,
+            "action": "arrow",
+            "params": {
+                "direction": "left"
+            }
+        },
+        {
+            "command": 0,
+            "action": "arrow",
+            "params": {
+                "direction": "right"
+            }
+        }
+    ]
+}
