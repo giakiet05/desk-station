@@ -28,16 +28,25 @@
             "action": "mouse_click",
             "repeatable": false,
             "params": {
-                "button": 1,
+                "button": "left",
                 "count": 1
             }
         },
         {
-            "command": 0,
+            "command": 31,
             "action": "mouse_click",
             "repeatable": false,
             "params": {
-                "button": -1,
+                "button": "right",
+                "count": 1
+            }
+        },
+             {
+            "command": 75,
+            "action": "mouse_click",
+            "repeatable": false,
+            "params": {
+                "button": "middle",
                 "count": 1
             }
         },
@@ -82,7 +91,7 @@
             "action": "mouse_scroll",
             "repeatable": true,
             "params": {
-                "direction": false,
+                "direction": "vertical",
                 "amount": 1
             }
         },
@@ -91,7 +100,7 @@
             "action": "mouse_scroll",
             "repeatable": true,
             "params": {
-                "direction": false,
+                "direction": "vertical",
                 "amount": -1
             }
         },
@@ -129,16 +138,20 @@
             "params": {}
         },
         {
-            "command": 0,
-            "action": "enter",
+            "command": 88,
+            "action": "keyboard_shortcut",
             "repeatable": false,
-            "params": {}
+            "params": {
+                "keys": ["enter"]
+            }
         },
         {
-            "command": 0,
-            "action": "escape",
+            "command": 45,
+            "action": "keyboard_shortcut",
             "repeatable": false,
-            "params": {}
+            "params": {
+                "keys": ["escape"]
+            }
         },
         {
             "command": 0,
@@ -171,6 +184,15 @@
             "params": {
                 "direction": "right"
             }
+        },
+          {
+            "command": 5,
+            "action": "keyboard_shortcut",
+            "repeatable": false,
+            "params": {
+                "keys": ["ctrl", "space"]
+            }
         }
+
     ]
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"os/exec"
+	"time"
 
 	"github.com/bendahl/uinput"
 )
@@ -25,11 +26,7 @@ const (
 	IrActionNextTrack     IrActionId = "next_track"
 	IrActionPreviousTrack IrActionId = "previous_track"
 
-	IrActionPrintScreen IrActionId = "print_screen"
-	IrActionEnter       IrActionId = "enter"
-	IrActionEscape      IrActionId = "escape"
-
-	IrActionArrow IrActionId = "arrow"
+	IrActionKeyboardShortcut IrActionId = "keyboard_shortcut"
 )
 
 type IrActionContext struct {
@@ -84,11 +81,11 @@ func MouseClick(ctx *IrActionContext, rawParams json.RawMessage) error {
 	var clickFunc func() error
 
 	switch p.Button {
-	case -1:
+	case MouseButtonRight:
 		clickFunc = ctx.mouse.RightClick
-	case 0:
+	case MouseButtonMiddle:
 		clickFunc = ctx.mouse.MiddleClick
-	case 1:
+	case MouseButtonLeft:
 		clickFunc = ctx.mouse.LeftClick
 	default:
 		return errors.New("invalid parameter value for mouse click action")
@@ -120,7 +117,17 @@ func MouseScroll(ctx *IrActionContext, rawParams json.RawMessage) error {
 		return errors.New("invalid parameters for mouse scroll action")
 	}
 
-	return ctx.mouse.Wheel(p.Direction, int32(p.Amount))
+	var direction bool
+	switch p.Direction {
+	case MouseScrollHorizontal:
+		direction = true
+	case MouseScrollVertical:
+		direction = false
+	default:
+		return errors.New("invalid parameter value for mouse scroll action: direction must be 'horizontal' or 'vertical'")
+	}
+
+	return ctx.mouse.Wheel(direction, int32(p.Amount))
 }
 
 func PlayPause(ctx *IrActionContext, _ json.RawMessage) error {
@@ -133,39 +140,6 @@ func NextTrack(ctx *IrActionContext, _ json.RawMessage) error {
 
 func PreviousTrack(ctx *IrActionContext, _ json.RawMessage) error {
 	return ctx.keyboard.KeyPress(uinput.KeyPrevioussong)
-}
-
-func PrintScreen(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.keyboard.KeyPress(uinput.KeyPrint)
-}
-
-func Enter(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.keyboard.KeyPress(uinput.KeyEnter)
-}
-
-func Escape(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.keyboard.KeyPress(uinput.KeyEsc)
-}
-
-func Arrow(ctx *IrActionContext, rawParams json.RawMessage) error {
-	var p ArrowKeyParams
-
-	if err := json.Unmarshal(rawParams, &p); err != nil {
-		return errors.New("invalid parameters for arrow key action")
-	}
-
-	switch p.Direction {
-	case "up":
-		return ctx.keyboard.KeyPress(uinput.KeyUp)
-	case "down":
-		return ctx.keyboard.KeyPress(uinput.KeyDown)
-	case "left":
-		return ctx.keyboard.KeyPress(uinput.KeyLeft)
-	case "right":
-		return ctx.keyboard.KeyPress(uinput.KeyRight)
-	default:
-		return errors.New("invalid parameter value for arrow key action")
-	}
 }
 
 func RunCommand(ctx *IrActionContext, rawParams json.RawMessage) error {
@@ -195,5 +169,38 @@ func RunCommand(ctx *IrActionContext, rawParams json.RawMessage) error {
 
 	}()
 
+	return nil
+}
+
+func KeyboardShortcut(ctx *IrActionContext, rawParams json.RawMessage) error {
+	var p KeyboardShortcutParams
+
+	if err := json.Unmarshal(rawParams, &p); err != nil {
+		return errors.New("invalid parameters for keyboard shortcut action")
+	}
+
+	if len(p.Keys) == 0 {
+		return errors.New("keys cannot be empty for keyboard shortcut action")
+	}
+
+	for _, key := range p.Keys {
+		uinputKey, ok := keyboardKeyToUinputKey[key]
+		if !ok {
+			return errors.New("invalid key in keyboard shortcut action: " + string(key))
+		}
+
+		if err := ctx.keyboard.KeyDown(uinputKey); err != nil {
+			return err
+		}
+
+		defer func() {
+			if err := ctx.keyboard.KeyUp(uinputKey); err != nil {
+				ctx.logger.Error("Failed to release key in keyboard shortcut action", "key", key, "error", err)
+			}
+		}()
+
+	}
+
+	time.Sleep(100 * time.Millisecond)
 	return nil
 }
