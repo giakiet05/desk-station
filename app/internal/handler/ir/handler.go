@@ -8,8 +8,9 @@ import (
 )
 
 type BoundAction struct {
-	ActionId IrActionId
-	Params   json.RawMessage
+	ActionId   IrActionId
+	Repeatable bool
+	Params     json.RawMessage
 }
 
 type IrEventHandler struct {
@@ -25,7 +26,7 @@ func NewIrEventHandler(ctx *IrActionContext, logger *slog.Logger) *IrEventHandle
 
 	}
 
-	if ctx.Keyboard == nil || ctx.Mouse == nil {
+	if ctx.keyboard == nil || ctx.mouse == nil {
 		panic("IrActionContext must have both Keyboard and Mouse initialized")
 	}
 
@@ -41,10 +42,11 @@ func NewIrEventHandler(ctx *IrActionContext, logger *slog.Logger) *IrEventHandle
 	}
 }
 
-func (eh *IrEventHandler) RegisterKeyAction(key IrKey, actionId IrActionId, params json.RawMessage) {
+func (eh *IrEventHandler) RegisterKeyAction(key IrKey, actionId IrActionId, params json.RawMessage, repeatable bool) {
 	eh.keyActionMap[key.String()] = BoundAction{
-		ActionId: actionId,
-		Params:   params,
+		ActionId:   actionId,
+		Repeatable: repeatable,
+		Params:     params,
 	}
 	eh.logger.Debug("Key action registered", "key", key.String(), "action_id", actionId)
 }
@@ -66,6 +68,11 @@ func (eh *IrEventHandler) Handle(payload *serial.IrPayload) error {
 	if !exists {
 		eh.logger.Debug("No action mapped for IR key", "key", key.String())
 		return errors.New("no action mapped for this key")
+	}
+
+	if !boundAction.Repeatable && payload.IsRepeat {
+		eh.logger.Debug("Button is not repeatable and this is a repeat signal, ignoring", "key", key.String())
+		return nil
 	}
 
 	action, exists := eh.actionMap[boundAction.ActionId]

@@ -7,6 +7,8 @@ require (
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 )
 
+require github.com/fsnotify/fsnotify v1.10.1 // indirect
+
 require (
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/sys v0.30.0 // indirect

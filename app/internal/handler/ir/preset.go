@@ -11,9 +11,10 @@ type PresetFile struct {
 }
 
 type PresetItem struct {
-	Command uint16          `json:"command"`
-	Action  IrActionId      `json:"action"`
-	Params  json.RawMessage `json:"params"`
+	Command    uint16          `json:"command"`
+	Action     IrActionId      `json:"action"`
+	Repeatable bool            `json:"repeatable"`
+	Params     json.RawMessage `json:"params"`
 }
 
 func LoadPreset(filePath string, eh *IrEventHandler) error {
@@ -35,7 +36,7 @@ func LoadPreset(filePath string, eh *IrEventHandler) error {
 			Command: item.Command,
 		}
 
-		eh.RegisterKeyAction(key, item.Action, item.Params)
+		eh.RegisterKeyAction(key, item.Action, item.Params, item.Repeatable)
 
 	}
 	return nil

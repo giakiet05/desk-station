@@ -73,14 +73,14 @@ func (s *SerialBridge) Start() error {
 	return nil
 }
 
-func (s *SerialBridge) onMessage(msg serial.FirmwareMessage, payload any) {
+func (s *SerialBridge) onMessage(msg serial.FirmwareMessage, payload serial.FirmwarePayload) {
 	busTopic, exists := topicRouter[msg.Topic]
 	if !exists {
 		s.logger.Warn("Unregistered firmware topic", "topic", msg.Topic)
 		return
 	}
 
-	s.logger.Debug("Firmware message received", "topic", msg.Topic)
+	s.logger.Debug("Firmware message received", "topic", msg.Topic, "payload", payload)
 	s.eventBus.Publish(&bridgeEvent{
 		topic:   busTopic,
 		payload: payload,

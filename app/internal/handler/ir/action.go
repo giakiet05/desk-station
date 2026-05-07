@@ -3,6 +3,8 @@ package ir
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"os/exec"
 
 	"github.com/bendahl/uinput"
 )
@@ -31,18 +33,20 @@ const (
 )
 
 type IrActionContext struct {
-	Keyboard uinput.Keyboard
-	Mouse    uinput.Mouse
+	keyboard uinput.Keyboard
+	mouse    uinput.Mouse
+	logger   *slog.Logger
 }
 
-func NewIrActionContext(keyboard uinput.Keyboard, mouse uinput.Mouse) *IrActionContext {
-	if keyboard == nil || mouse == nil {
-		panic("Both keyboard and mouse must be provided")
+func NewIrActionContext(keyboard uinput.Keyboard, mouse uinput.Mouse, logger *slog.Logger) *IrActionContext {
+	if keyboard == nil || mouse == nil || logger == nil {
+		panic("All parameters for IrActionContext must be provided")
 	}
 
 	return &IrActionContext{
-		Keyboard: keyboard,
-		Mouse:    mouse,
+		keyboard: keyboard,
+		mouse:    mouse,
+		logger:   logger,
 	}
 }
 
@@ -57,9 +61,9 @@ func Volume(ctx *IrActionContext, rawParams json.RawMessage) error {
 
 	switch p.Delta {
 	case -1:
-		return ctx.Keyboard.KeyPress(uinput.KeyVolumedown)
+		return ctx.keyboard.KeyPress(uinput.KeyVolumedown)
 	case 1:
-		return ctx.Keyboard.KeyPress(uinput.KeyVolumeup)
+		return ctx.keyboard.KeyPress(uinput.KeyVolumeup)
 	default:
 		return errors.New("invalid parameter value for volume action")
 	}
@@ -67,7 +71,7 @@ func Volume(ctx *IrActionContext, rawParams json.RawMessage) error {
 }
 
 func Mute(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyMute)
+	return ctx.keyboard.KeyPress(uinput.KeyMute)
 }
 
 func MouseClick(ctx *IrActionContext, rawParams json.RawMessage) error {
@@ -81,11 +85,11 @@ func MouseClick(ctx *IrActionContext, rawParams json.RawMessage) error {
 
 	switch p.Button {
 	case -1:
-		clickFunc = ctx.Mouse.RightClick
+		clickFunc = ctx.mouse.RightClick
 	case 0:
-		clickFunc = ctx.Mouse.MiddleClick
+		clickFunc = ctx.mouse.MiddleClick
 	case 1:
-		clickFunc = ctx.Mouse.LeftClick
+		clickFunc = ctx.mouse.LeftClick
 	default:
 		return errors.New("invalid parameter value for mouse click action")
 	}
@@ -106,7 +110,7 @@ func MouseMove(ctx *IrActionContext, rawParams json.RawMessage) error {
 		return errors.New("invalid parameters for mouse move action")
 	}
 
-	return ctx.Mouse.Move(int32(p.DX), int32(p.DY))
+	return ctx.mouse.Move(int32(p.DX), int32(p.DY))
 }
 
 func MouseScroll(ctx *IrActionContext, rawParams json.RawMessage) error {
@@ -116,43 +120,31 @@ func MouseScroll(ctx *IrActionContext, rawParams json.RawMessage) error {
 		return errors.New("invalid parameters for mouse scroll action")
 	}
 
-	return ctx.Mouse.Wheel(p.Direction, int32(p.Amount))
-}
-
-func RunCommand(ctx *IrActionContext, rawParams json.RawMessage) error {
-	var p RunCommandParams
-
-	if err := json.Unmarshal(rawParams, &p); err != nil {
-		return errors.New("invalid parameters for run command action")
-	}
-
-	// Here you would implement the logic to run the command with the given arguments.
-	// This is a placeholder and should be replaced with actual command execution code.
-	return errors.New("run command action is not implemented yet")
+	return ctx.mouse.Wheel(p.Direction, int32(p.Amount))
 }
 
 func PlayPause(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyPlaypause)
+	return ctx.keyboard.KeyPress(uinput.KeyPlaypause)
 }
 
 func NextTrack(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyNextsong)
+	return ctx.keyboard.KeyPress(uinput.KeyNextsong)
 }
 
 func PreviousTrack(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyPrevioussong)
+	return ctx.keyboard.KeyPress(uinput.KeyPrevioussong)
 }
 
 func PrintScreen(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyPrint)
+	return ctx.keyboard.KeyPress(uinput.KeyPrint)
 }
 
 func Enter(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyEnter)
+	return ctx.keyboard.KeyPress(uinput.KeyEnter)
 }
 
 func Escape(ctx *IrActionContext, _ json.RawMessage) error {
-	return ctx.Keyboard.KeyPress(uinput.KeyEsc)
+	return ctx.keyboard.KeyPress(uinput.KeyEsc)
 }
 
 func Arrow(ctx *IrActionContext, rawParams json.RawMessage) error {
@@ -164,14 +156,44 @@ func Arrow(ctx *IrActionContext, rawParams json.RawMessage) error {
 
 	switch p.Direction {
 	case "up":
-		return ctx.Keyboard.KeyPress(uinput.KeyUp)
+		return ctx.keyboard.KeyPress(uinput.KeyUp)
 	case "down":
-		return ctx.Keyboard.KeyPress(uinput.KeyDown)
+		return ctx.keyboard.KeyPress(uinput.KeyDown)
 	case "left":
-		return ctx.Keyboard.KeyPress(uinput.KeyLeft)
+		return ctx.keyboard.KeyPress(uinput.KeyLeft)
 	case "right":
-		return ctx.Keyboard.KeyPress(uinput.KeyRight)
+		return ctx.keyboard.KeyPress(uinput.KeyRight)
 	default:
 		return errors.New("invalid parameter value for arrow key action")
 	}
+}
+
+func RunCommand(ctx *IrActionContext, rawParams json.RawMessage) error {
+	var p RunCommandParams
+
+	if err := json.Unmarshal(rawParams, &p); err != nil {
+		return errors.New("invalid parameters for run command action")
+	}
+
+	if p.Command == "" {
+		return errors.New("command cannot be empty for run command action")
+	}
+
+	cmd := exec.Command(p.Command, p.Args...)
+
+	err := cmd.Start()
+	if err != nil {
+		return errors.New("failed to start command")
+	}
+
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			ctx.logger.Error("Command execution failed", "command", p.Command, "args", p.Args, "error", err)
+		}
+		ctx.logger.Debug("Command execution finished", "command", p.Command, "args", p.Args)
+
+	}()
+
+	return nil
 }

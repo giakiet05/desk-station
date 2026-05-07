@@ -45,7 +45,7 @@ func main() {
 	bus := bus.NewEventBus(20)
 	logger := logging.NewLogger()
 
-	irActionContext := ir.NewIrActionContext(keyboard, mouse)
+	irActionContext := ir.NewIrActionContext(keyboard, mouse, logger)
 	irHandler := ir.NewIrEventHandler(irActionContext, logger)
 	irRouter := service.NewIrRouter(ctx, irHandler, bus, logger)
 

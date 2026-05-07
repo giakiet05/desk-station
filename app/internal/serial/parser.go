@@ -38,26 +38,6 @@ func ParseFirmwareMessage(line []byte) (FirmwareMessage, FirmwarePayload, error)
 
 	payload := factory()
 
-	// var payload any
-	// switch msg.Topic {
-	// case FirmwareTopicEventIR:
-	// 	payload = &IrPayload{}
-	// case FirmwareTopicEventDHT11:
-	// 	payload = &Dht11Payload{}
-	// case FirmwareTopicEventButton:
-	// 	payload = &ButtonPayload{}
-	// case FirmwareTopicEventDevice:
-	// 	payload = &DevicePayload{}
-	// case FirmwareTopicAckCommand:
-	// 	payload = &CommandAckPayload{}
-	// case FirmwareTopicCommandLED:
-	// 	payload = &LedCommandPayload{}
-	// case FirmwareTopicCommandPing:
-	// 	return msg, msg.Payload, nil
-	// default:
-	// 	return msg, nil, fmt.Errorf("unknown topic: %s", msg.Topic)
-	// }
-
 	if len(msg.Payload) == 0 || string(msg.Payload) == "null" {
 		return msg, nil, errors.New("empty payload")
 	}
@@ -69,7 +49,7 @@ func ParseFirmwareMessage(line []byte) (FirmwareMessage, FirmwarePayload, error)
 	return msg, payload, nil
 }
 
-func ListenFirmware(ctx context.Context, byIdPath string, baudRate int, onMessage func(msg FirmwareMessage, payload any), onError func(err error)) {
+func ListenFirmware(ctx context.Context, byIdPath string, baudRate int, onMessage func(msg FirmwareMessage, payload FirmwarePayload), onError func(err error)) {
 	go func() {
 		config := &se.Config{
 			Name: byIdPath,

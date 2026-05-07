@@ -4,6 +4,7 @@
         {
             "command": 11,
             "action": "volume",
+            "repeatable": true,
             "params": {
                 "delta": -1
             }
@@ -11,6 +12,7 @@
         {
             "command": 7,
             "action": "volume",
+            "repeatable": true,
             "params": {
                 "delta": 1
             }
@@ -18,11 +20,13 @@
         {
             "command": 15,
             "action": "mute",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 104,
             "action": "mouse_click",
+            "repeatable": false,
             "params": {
                 "button": 1,
                 "count": 1
@@ -31,6 +35,7 @@
         {
             "command": 0,
             "action": "mouse_click",
+            "repeatable": false,
             "params": {
                 "button": -1,
                 "count": 1
@@ -39,38 +44,43 @@
         {
             "command": 96,
             "action": "mouse_move",
+            "repeatable": true,
             "params": {
                 "dx": 0,
-                "dy": -15
+                "dy": -30
             }
         },
         {
             "command": 97,
             "action": "mouse_move",
+            "repeatable": true,
             "params": {
                 "dx": 0,
-                "dy": 15
+                "dy": 30
             }
         },
         {
             "command": 101,
             "action": "mouse_move",
+            "repeatable": true,
             "params": {
-                "dx": -15,
+                "dx": -30,
                 "dy": 0
             }
         },
         {
             "command": 98,
             "action": "mouse_move",
+            "repeatable": true,
             "params": {
-                "dx": 15,
+                "dx": 30,
                 "dy": 0
             }
         },
         {
             "command": 18,
             "action": "mouse_scroll",
+            "repeatable": true,
             "params": {
                 "direction": false,
                 "amount": 1
@@ -79,52 +89,61 @@
         {
             "command": 16,
             "action": "mouse_scroll",
+            "repeatable": true,
             "params": {
                 "direction": false,
                 "amount": -1
             }
         },
         {
-            "command": 0,
+            "command": 4,
             "action": "run_command",
+            "repeatable": false,
             "params": {
-                "command": "firefox",
+                "command": "brave",
                 "args": []
             }
         },
         {
             "command": 71,
             "action": "play_pause",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 72,
             "action": "next_track",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 69,
             "action": "previous_track",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 0,
             "action": "print_screen",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 0,
             "action": "enter",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 0,
             "action": "escape",
+            "repeatable": false,
             "params": {}
         },
         {
             "command": 0,
             "action": "arrow",
+            "repeatable": false,
             "params": {
                 "direction": "up"
             }
@@ -132,6 +151,7 @@
         {
             "command": 0,
             "action": "arrow",
+            "repeatable": false,
             "params": {
                 "direction": "down"
             }
@@ -139,6 +159,7 @@
         {
             "command": 0,
             "action": "arrow",
+            "repeatable": false,
             "params": {
                 "direction": "left"
             }
@@ -146,6 +167,7 @@
         {
             "command": 0,
             "action": "arrow",
+            "repeatable": false,
             "params": {
                 "direction": "right"
             }
