@@ -3,6 +3,7 @@ package ir
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 type PresetFile struct {
@@ -17,27 +18,43 @@ type PresetItem struct {
 	Params     json.RawMessage `json:"params"`
 }
 
-func LoadPreset(filePath string, eh *IrEventHandler) error {
-	data, err := os.ReadFile(filePath)
+func ParsePresetDir(dirPath string) (map[string]BoundAction, error) {
+	newMap := make(map[string]BoundAction)
+
+	files, err := os.ReadDir(dirPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var fileData PresetFile
-	if err := json.Unmarshal(data, &fileData); err != nil {
-		return err
-	}
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			fullPath := filepath.Join(dirPath, file.Name())
 
-	address := fileData.Address
+			data, err := os.ReadFile(fullPath)
+			if err != nil {
+				return nil, err
+			}
 
-	for _, item := range fileData.Items {
-		key := IrKey{
-			Address: address,
-			Command: item.Command,
+			var fileData PresetFile
+			if err := json.Unmarshal(data, &fileData); err != nil {
+				return nil, err
+			}
+
+			address := fileData.Address
+
+			for _, item := range fileData.Items {
+				key := IrKey{
+					Address: address,
+					Command: item.Command,
+				}
+
+				newMap[key.String()] = BoundAction{
+					ActionId:   item.Action,
+					Repeatable: item.Repeatable,
+					Params:     item.Params,
+				}
+			}
 		}
-
-		eh.RegisterKeyAction(key, item.Action, item.Params, item.Repeatable)
-
 	}
-	return nil
+	return newMap, nil
 }

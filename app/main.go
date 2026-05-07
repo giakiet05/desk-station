@@ -2,14 +2,13 @@ package main
 
 import (
 	"app/internal/bus"
+	"app/internal/config"
 	"app/internal/handler/ir"
 	"app/internal/logging"
 	"app/internal/serial"
 	"app/internal/service"
 	"context"
 	"embed"
-	"os"
-	"path/filepath"
 
 	"github.com/bendahl/uinput"
 	"github.com/joho/godotenv"
@@ -54,23 +53,15 @@ func main() {
 	service.RegisterRouters()
 
 	presetDir := "presets"
-	files, err := os.ReadDir(presetDir)
+
+	newKeyActionMap, err := ir.ParsePresetDir(presetDir)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, file := range files {
-		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" {
-			fullPath := filepath.Join(presetDir, file.Name())
+	irHandler.ReloadKeyActions(newKeyActionMap)
 
-			err := ir.LoadPreset(fullPath, irHandler)
-			if err != nil {
-				println("Failed to load preset", fullPath, ":", err)
-				continue
-			}
-			println("Loaded preset:", fullPath)
-		}
-	}
+	config.WatchPresetDir(presetDir, irHandler, logger)
 
 	serialBridge := service.NewSerialBridge(ctx, bus, byIdPath, baudRate, logger)
 

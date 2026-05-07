@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"sync"
 )
 
 type BoundAction struct {
@@ -14,6 +15,7 @@ type BoundAction struct {
 }
 
 type IrEventHandler struct {
+	mu           sync.RWMutex
 	ctx          *IrActionContext
 	keyActionMap map[string]BoundAction
 	actionMap    map[IrActionId]IrAction
@@ -42,15 +44,6 @@ func NewIrEventHandler(ctx *IrActionContext, logger *slog.Logger) *IrEventHandle
 	}
 }
 
-func (eh *IrEventHandler) RegisterKeyAction(key IrKey, actionId IrActionId, params json.RawMessage, repeatable bool) {
-	eh.keyActionMap[key.String()] = BoundAction{
-		ActionId:   actionId,
-		Repeatable: repeatable,
-		Params:     params,
-	}
-	eh.logger.Debug("Key action registered", "key", key.String(), "action_id", actionId)
-}
-
 func (eh *IrEventHandler) RegisterAction(actionId IrActionId, action IrAction) {
 	eh.actionMap[actionId] = action
 	eh.logger.Debug("Action registered", "action_id", actionId)
@@ -63,7 +56,9 @@ func (eh *IrEventHandler) Handle(payload *serial.IrPayload) error {
 
 	key := NewIrKey(payload)
 
+	eh.mu.RLock()
 	boundAction, exists := eh.keyActionMap[key.String()]
+	eh.mu.RUnlock()
 
 	if !exists {
 		eh.logger.Debug("No action mapped for IR key", "key", key.String())
@@ -90,4 +85,11 @@ func (eh *IrEventHandler) Handle(payload *serial.IrPayload) error {
 
 	eh.logger.Debug("Action executed successfully", "action_id", boundAction.ActionId)
 	return nil
+}
+
+func (eh *IrEventHandler) ReloadKeyActions(newMap map[string]BoundAction) {
+	eh.mu.Lock()
+	defer eh.mu.Unlock()
+	eh.keyActionMap = newMap
+	eh.logger.Info("Key actions reloaded", "total_actions", len(newMap))
 }
