@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type PresetFile struct {
@@ -12,10 +13,11 @@ type PresetFile struct {
 }
 
 type PresetItem struct {
-	Command    uint16          `json:"command"`
-	Action     IrActionId      `json:"action"`
-	Repeatable bool            `json:"repeatable"`
-	Params     json.RawMessage `json:"params"`
+	Command      uint16          `json:"command"`
+	Action       IrActionId      `json:"action"`
+	Repeatable   bool            `json:"repeatable"`
+	HoldDuration uint16          `json:"hold_duration"` // in milliseconds
+	Params       json.RawMessage `json:"params"`
 }
 
 func ParsePresetDir(dirPath string) (map[string]BoundAction, error) {
@@ -48,10 +50,16 @@ func ParsePresetDir(dirPath string) (map[string]BoundAction, error) {
 					Command: item.Command,
 				}
 
+				holdMs := item.HoldDuration
+				if holdMs > 10000 {
+					holdMs = 10000
+				}
+
 				newMap[key.String()] = BoundAction{
-					ActionId:   item.Action,
-					Repeatable: item.Repeatable,
-					Params:     item.Params,
+					ActionId:     item.Action,
+					Repeatable:   item.Repeatable,
+					HoldDuration: time.Duration(holdMs) * time.Millisecond,
+					Params:       item.Params,
 				}
 			}
 		}

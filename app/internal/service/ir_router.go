@@ -117,11 +117,17 @@ func (r *IrRouter) handleEvent(event bus.Event) {
 	case *serial.IrPayload:
 		if p != nil {
 			r.logger.Debug("IR event received", "address", p.Address, "command", p.Command)
-			r.handler.Handle(p)
+			if err := r.handler.Handle(p); err != nil {
+				r.logger.Error("Error handling event", "err", err, "event")
+			}
+
 		}
 	case serial.IrPayload:
 		r.logger.Debug("IR event received", "address", p.Address, "command", p.Command)
-		r.handler.Handle(&p)
+		if err := r.handler.Handle(&p); err != nil {
+			r.logger.Error("Error handling event", "err", err, "event", event)
+		}
+
 	default:
 		r.logger.Error("Unhandled event type", slog.Any("event", event))
 	}

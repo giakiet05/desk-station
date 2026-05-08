@@ -46,6 +46,13 @@ const (
 	KeyEnter       KeyboardKey = "enter"
 	KeyEscape      KeyboardKey = "escape"
 	KeyPrintScreen KeyboardKey = "print_screen"
+	KeyPageUp      KeyboardKey = "page_up"
+	KeyPageDown    KeyboardKey = "page_down"
+	KeyDelete      KeyboardKey = "delete"
+	KeyBackspace   KeyboardKey = "backspace"
+	KeyHome        KeyboardKey = "home"
+	KeyEnd         KeyboardKey = "end"
+	KeyTab         KeyboardKey = "tab"
 )
 
 var keyboardKeyToUinputKey = map[KeyboardKey]int{
@@ -87,4 +94,11 @@ var keyboardKeyToUinputKey = map[KeyboardKey]int{
 	KeyEscape:      uinput.KeyEsc,
 	KeyPrintScreen: uinput.KeyPrint,
 	KeySpace:       uinput.KeySpace,
+	KeyPageUp:      uinput.KeyPageup,
+	KeyPageDown:    uinput.KeyPagedown,
+	KeyDelete:      uinput.KeyDelete,
+	KeyBackspace:   uinput.KeyBackspace,
+	KeyHome:        uinput.KeyHome,
+	KeyEnd:         uinput.KeyEnd,
+	KeyTab:         uinput.KeyTab,
 }
